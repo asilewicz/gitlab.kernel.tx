@@ -42,7 +42,7 @@ Possible resolutions over Vagrant triggers, loops, if conditions - didn't prove 
 ansible-playbook main.yml -i hosts
 ```
 
-After successful deployment of the virtualbox VMs, and completing ansible tasks, the GitLab server URL will be accessible from the hypervisor ip-address, on port 8443, and also on the https://gitlab-server.kernel.tx - both of which might be directly reached from web-browser. Here the 'root' user password will have to be also created during the first login.
+After successful deployment of the virtualbox VMs, and completing ansible tasks, the GitLab server URL will be accessible from the hypervisor ip-address, on port 8443, and also on the VM itself: https://gitlab-server.kernel.tx - both of which might be directly reached from web-browser. Here the 'root' user password will have to be also created during the first login.
 
 #### Final remarks :
 
