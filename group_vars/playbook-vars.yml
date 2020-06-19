@@ -1,0 +1,7 @@
+    gitlab_domain: "gitlab-server.kernel.panic"
+    gitlab_url: "https://{{ gitlab_domain }}"
+    gitlab_registry_url: "{{ gitlab_url }}:4567"
+    gitlab_runner_count: 1
+    gitlab_pages_domain: "pages.kernel.panic"
+    gitlab_pages_url: "https://{{ gitlab_pages_domain }}"
+

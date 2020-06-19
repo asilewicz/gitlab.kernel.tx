@@ -1,0 +1,38 @@
+---
+  
+  - name: Installing dependencies for GitLab server...
+    package:
+      name:
+        - curl
+        - openssh-server
+        - postfix
+
+  - name: Downloading, and installing GitLab repository...
+    shell: "curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash"
+    args:
+      warn: no
+
+  - name: Starting GitLab Server installation with Omnibus... (this might take a while)
+    yum:
+      name: gitlab-ee
+    environment:
+      EXTERNAL_URL: "{{gitlab_url}}"
+    ignore_errors: true
+#    register: gitlab_install_result
+
+#  - name: Full post-install GitLab deployment status
+#    debug:
+#      msg:
+#       - "The installation process said the following: "
+#       - "{{gitlab_install_result.results}}"
+
+  - name: Waiting for Gitlab to start https service...
+    wait_for:
+      port: 443
+      delay: 10
+      sleep: 5
+
+  - name: Checking if GitLab server URL is accessible...
+    uri:
+      url: "{{gitlab_url}}"
+      validate_certs: no

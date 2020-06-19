@@ -1,0 +1,7 @@
+vagrant_box: "centos/7"
+vagrant_directory: /vagrant
+vagrant_ip: 172.16.2.
+vagrant_cpu: 2
+vagrant_memory: 1024
+vagrant_box_check_update: false
+vagrant_domain_name: kernel.tx

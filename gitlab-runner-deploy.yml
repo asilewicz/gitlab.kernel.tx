@@ -1,0 +1,63 @@
+---
+  
+  - name: Downloading, and Installing GitLab Runner package repository...
+    shell: "curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh | sudo bash"
+    args:
+      warn: no
+
+  - name: Installing GitLab Runner package from the repostiry...
+    yum:
+      name: gitlab-runner
+
+  - name: Obtaining Runner Registration Token from gitlab-rails...
+    become: true
+    shell: |
+      echo "Gitlab::CurrentSettings.current_application_settings.runners_registration_token" |
+      gitlab-rails console --environment=production
+    register: gitlab_runner_registration_token_result
+    delegate_to: "{{gitlab_domain}}"
+    run_once: true
+
+  - name: Regexp to extract only the token string...
+    set_fact:
+      gitlab_runner_registration_token: "{{ gitlab_runner_registration_token_result.stdout | regex_search(regexp, '\\1') | list | first }}"
+    vars:
+      regexp: 'runners_registration_token\n\"([^\"]+)'
+    run_once: true
+
+  - name: "[Debug] - Extracted token :"
+    debug:
+      msg: "{{gitlab_runner_registration_token}}"
+    run_once: true
+
+  - name: Creating GitLab Runner /etc/gitlab-runner/certs directory
+    become: true
+    file:
+      path: /etc/gitlab-runner/certs
+      state: directory
+
+  - name: Downloading Self-Signed Certificate from GitLab to a GitLab Runner trusted cert directory...
+    shell: "openssl s_client -showcerts -connect '{{gitlab_domain}}:443' </dev/null 2>/dev/null|openssl x509 -outform PEM > '/etc/gitlab-runner/certs/{{gitlab_domain}}.crt'"
+    
+  - name: Registering GitLab Runners for picking up the jobs from GitLab Server
+#    environment:
+#       GIT_SSL_NO_VERIFY: 'true'
+    shell: "gitlab-runner register --non-interactive --url '{{gitlab_url}}' --registration-token '{{gitlab_runner_registration_token}}' --description 'shell-runner-{{ item }}' --executor shell --tag-list shell"
+    loop: "{{ range(1,gitlab_runner_count + 1)|list }}"
+
+# This value defaults is 1 as also in our deployment...
+#  - name: Setting concurrence for GitLab Runners awerness...
+#    ini_file:
+#      path: /etc/gitlab-runner/config.toml
+#      section: 
+#      option: concurrent
+#      value: "{{ gitlab_runner_count }}"
+
+  - name: Retreiving list of registered GitLab Runners
+    shell: "gitlab-runner list"
+    register: runner_result
+
+  - name: Printing all of the registered Gitlab Runners
+    debug:
+      msg:
+       - "{{runner_result.stderr_lines}}"

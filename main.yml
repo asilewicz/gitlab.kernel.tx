@@ -1,0 +1,46 @@
+---
+- hosts: all
+  become: true
+  gather_facts: True
+  vars_files:
+    - group_vars/playbook-vars.yml
+
+  tasks:
+  - name: SSH vagrant login test & dynamic build of /etc/hosts on VMs
+    import_tasks: etc-hosts-deploy.yml
+    tags: test_prep
+
+  - name: Update yum
+    yum:
+      name: "*"
+      state: latest
+    tags: update
+  
+  - name: Install Gitlab on Linux node
+    import_tasks: gitlab-deploy.yml
+    tags: gitlab
+#    exclude_hosts: gitlab_runners
+    delegate_to: "{{gitlab_domain}}"
+    run_once: true
+
+- hosts: gitlab_runners
+  become: true
+  vars_files:
+    - group_vars/playbook-vars.yml
+
+  tasks:
+  - name: Install & Register Gitlab Runner 
+    import_tasks: gitlab-runner-deploy.yml
+    tags: runner
+
+- hosts: gitlab_server
+  become: true
+  vars_files:
+    - group_vars/playbook-vars.yml
+  
+  tasks:
+  - name: All done! Huuuh...
+    debug:
+      msg:
+        - "The GitLab is available now under {{ gitlab_url }}, and also on port 8443/tcp of your hypervisor host"
+        - "While logging for the first time, please do remember to setup the 'root' username password!"

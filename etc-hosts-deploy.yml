@@ -1,0 +1,13 @@
+---
+  - name: "Ansible user login attemp - checking connection..."
+    ping:
+  - name: "Collecting facts returned by facter..."
+    setup:
+  - name: "Building /etc/hosts on each VM (from assigned ipv4 eth properties) ..."
+    become: yes
+    lineinfile: dest=/etc/hosts
+                state=present
+                dest=/etc/hosts
+                regexp='.*{{ item }}$' line="{{ hostvars[item].ansible_eth1.ipv4.address }} {{item}}"
+    when: hostvars[item].ansible_eth1.ipv4.address is defined
+    with_items: "{{ groups['all'] }}"

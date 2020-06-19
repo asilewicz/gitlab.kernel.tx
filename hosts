@@ -1,0 +1,5 @@
+[gitlab_server]
+gitlab-server.kernel.tx ansible_host=172.16.2.15
+
+[gitlab_runners]
+gitlab-runner.kernel.tx ansible_host=172.16.2.16
